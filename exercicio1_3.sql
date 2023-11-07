@@ -38,8 +38,9 @@ DECLARE
   -- Uso do tipo de registro em uma variavel
   linha_sac tipo_ocorrencia_sac;
 BEGIN
-   DBMS_OUTPUT.ENABLE(1000000);
- 
+  DBMS_OUTPUT.ENABLE(1000000);
+  DBMS_OUTPUT.PUT_LINE('Operação do cursor iniciada em ' || TO_CHAR(SYSDATE, 'DD-MM-YYYY HH24:MI:SS'));
+
   -- Abertura de cursor para inicio da iteracao
   OPEN sac_cursor;
 
@@ -55,6 +56,9 @@ BEGIN
 
     -- Sair do loop quand nao houver mais linhas no cursor
     EXIT WHEN sac_cursor%NOTFOUND;
+
+    DBMS_OUTPUT.PUT_LINE('Processando numero do SAC: ' || linha_sac.nr_sac);
+
 
 
   --b.1) Classificacao do SAC
@@ -82,6 +86,13 @@ BEGIN
     SELECT pf0110.fun_mc_gera_aliquota_media_icms_estado(linha_sac.sg_estado) INTO VL_PERC_ICMS_ESTADO FROM dual;
     linha_sac.VL_ICMS_PRODUTO := ( VL_PERC_ICMS_ESTADO / 100 ) * linha_sac.vl_unitario;
 
+
+    DBMS_OUTPUT.PUT_LINE('Numero do SAC ' || linha_sac.nr_sac || ' processado com os seguintes detalhes:');
+    DBMS_OUTPUT.PUT_LINE('Data: ' || TO_CHAR(linha_sac.dt_abertura_sac, 'DD/MM/YYYY') ||
+                          ', Hora: ' || linha_sac.hr_abertura_sac ||
+                          ', Tipo: ' || linha_sac.DS_TIPO_CLASSIFICACAO_SAC ||
+                          ', Estado: ' || linha_sac.nm_estado);
+
     -- Resultado final, alimentar tabela de ocorrencias SAC
     INSERT INTO MC_SGV_OCORRENCIA_SAC (
       NR_OCORRENCIA_SAC, DT_ABERTURA_SAC, HR_ABERTURA_SAC, DS_TIPO_CLASSIFICACAO_SAC,
@@ -93,10 +104,15 @@ BEGIN
       linha_sac.sg_estado, linha_sac.nm_estado, linha_sac.nr_cliente, linha_sac.nm_cliente, linha_sac.VL_ICMS_PRODUTO
     );
 
+    DBMS_OUTPUT.PUT_LINE('Numero do SAC ' || linha_sac.nr_sac || ' inserido com sucesso em MC_SGV_OCORRENCIA_SAC.');
+
+
   END LOOP;
 
   --c) Fechando o cursor
   CLOSE sac_cursor;
+  DBMS_OUTPUT.PUT_LINE('Operacao do cursor concluida em ' || TO_CHAR(SYSDATE, 'DD-MM-YYYY HH24:MI:SS'));
+
 
   --c) Commit da insercao
   COMMIT;
@@ -104,6 +120,8 @@ EXCEPTION
   WHEN OTHERS THEN
     -- Gerenciamento de excecoes do cursor
     DBMS_OUTPUT.PUT_LINE('Erro ao executar cursor: ' || SQLERRM);
+    DBMS_OUTPUT.PUT_LINE('Erro ao processar o número do SAC: ' || linha_sac.nr_sac);
+
     ROLLBACK;
 END;
 /
