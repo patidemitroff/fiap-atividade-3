@@ -1,6 +1,4 @@
 DECLARE
-  DBMS_OUTPUT.ENABLE(1000000);
-
   -- Definicao de um record type com a estrutura de destino da tabela MC_SGV_OCORRENCIA_SAC
   TYPE tipo_ocorrencia_sac IS RECORD (
     -- Colunas que serao retornadas via cursor principal
@@ -40,6 +38,8 @@ DECLARE
   -- Uso do tipo de registro em uma variavel
   linha_sac tipo_ocorrencia_sac;
 BEGIN
+   DBMS_OUTPUT.ENABLE(1000000);
+ 
   -- Abertura de cursor para inicio da iteracao
   OPEN sac_cursor;
 
